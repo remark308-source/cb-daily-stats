@@ -32,8 +32,10 @@ HISTORY_CSV = DATA_DIR / "history.csv"
 LAST_HASH_FILE = DATA_DIR / ".last_hash"
 
 # 價格區間分組（可依需求調整）
-PRICE_BINS = [0, 100, 105, 110, 120, 130, float("inf")]
-PRICE_BIN_LABELS = ["<100", "100-105", "105-110", "110-120", "120-130", ">=130"]
+PRICE_BINS = [0, 95, 100, 105, 110, 120, float("inf")]
+PRICE_BIN_LABELS = ["<95", "95~100", "100~105", "105~110", "110~120", ">=120"]
+# CSV 欄位名稱用（避免特殊符號 <, >, ~ 造成欄位命名問題），順序須與上面的 LABELS 一一對應
+PRICE_BIN_KEYS = ["lt95", "95_100", "100_105", "105_110", "110_120", "ge120"]
 
 # 台灣時區
 TW_TZ = timezone(timedelta(hours=8))
@@ -192,9 +194,9 @@ def save_outputs(raw: list[dict], stats: dict, trade_date: str, current_hash: st
         "count_premium_rate_ge_50": stats["count_premium_rate_ge_50"],
         "count_premium_rate_ge_100": stats["count_premium_rate_ge_100"],
     }
-    # 把價格區間分布也攤平成欄位
-    for label in PRICE_BIN_LABELS:
-        flat_stats[f"price_bin_{label}"] = stats["price_distribution"].get(label, 0)
+    # 把價格區間分布也攤平成欄位（用 KEYS 當欄位名稱，避免特殊符號）
+    for label, key in zip(PRICE_BIN_LABELS, PRICE_BIN_KEYS):
+        flat_stats[f"price_bin_{key}"] = stats["price_distribution"].get(label, 0)
 
     new_row = pd.DataFrame([flat_stats])
 
