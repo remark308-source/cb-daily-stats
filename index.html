@@ -135,7 +135,7 @@
 <header class="page">
   <p class="eyebrow">Taiwan Convertible Bond Market</p>
   <h1>可轉債看盤</h1>
-  <p class="subtitle">每日彙總全市場可轉債的價格分布、轉換價值與溢價率</p>
+  <p class="subtitle">每週彙總全市場可轉債的價格分布、轉換價值與溢價率</p>
   <p class="datestamp" id="dateStamp">—</p>
 </header>
 
@@ -144,12 +144,19 @@
 </main>
 
 <footer>
- （每日盤後更新）／ <a href="data/history.csv">歷史資料 CSV</a>
+  每週六更新／ <a href="data/history.csv">歷史資料 CSV</a>
 </footer>
 
 <script>
 const CSV_PATH = "data/history.csv";
-const PRICE_BINS = ["<100","100-105","105-110","110-120","120-130",">=130"];
+const PRICE_BINS = [
+  { label:"<95",     key:"lt95" },
+  { label:"95~100",  key:"95_100" },
+  { label:"100~105", key:"100_105" },
+  { label:"105~110", key:"105_110" },
+  { label:"110~120", key:"110_120" },
+  { label:">=120",   key:"ge120" },
+];
 
 function fmt(v, digits=2){
   if (v === undefined || v === null || v === "" || isNaN(v)) return "—";
@@ -210,7 +217,7 @@ function renderTicker(d){
 function renderCards(d){
   const cards = [
     { label:"納入統計標的數", value:d.total_count, unit:"檔" },
-    { label:"CB平均價（收盤／委買）", value:fmt(d.avg_cb_price), unit:"元" },
+    { label:"CB收盤價（平均）", value:fmt(d.avg_cb_price), unit:"元" },
     { label:"PR75 最高價", value:fmt(d.pr75_price), unit:"元" },
     { label:"PR90 最高價", value:fmt(d.pr90_price), unit:"元" },
     { label:"平均轉換價值", value:fmt(d.avg_conversion_value), unit:"元", cls:"amber" },
@@ -235,7 +242,7 @@ function renderCards(d){
       <div class="chart-wrap"><canvas id="trendChart"></canvas></div>
     </section>
     <section class="panel">
-      <h2>今日價格區間分布</h2>
+      <h2>本期價格區間分布</h2>
       <p class="desc">依 CB 收盤／委買價分組的標的數量</p>
       <div class="dist-bars" id="distBars"></div>
     </section>
@@ -321,14 +328,14 @@ function renderTrendChart(rows){
 }
 
 function renderDistribution(d){
-  const values = PRICE_BINS.map(label => Number(d["price_bin_" + label]) || 0);
+  const values = PRICE_BINS.map(b => Number(d["price_bin_" + b.key]) || 0);
   const max = Math.max(...values, 1);
-  const html = PRICE_BINS.map((label, i) => {
+  const html = PRICE_BINS.map((b, i) => {
     const v = values[i];
     const pct = (v / max * 100).toFixed(1);
     return `
       <div class="dist-row">
-        <div class="dist-label">${label}</div>
+        <div class="dist-label">${b.label}</div>
         <div class="dist-track"><div class="dist-fill" style="width:${pct}%"></div></div>
         <div class="dist-count">${v}</div>
       </div>`;
