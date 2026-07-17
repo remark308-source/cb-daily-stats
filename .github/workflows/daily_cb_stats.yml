@@ -1,0 +1,40 @@
+name: 每日可轉債統計
+
+on:
+  schedule:
+    # cron 使用 UTC 時間。台灣時間 20:00 = UTC 12:00（台灣為 UTC+8，無夏令時間，
+    # 20:00 - 8 小時 = 12:00，同一個日曆日，所以星期幾不需要額外換算）
+    # 週一到週五執行
+    - cron: '0 12 * * 1-5'
+  workflow_dispatch: {}  # 允許手動觸發，方便測試
+
+# 讓 Action 有權限把結果 commit 回 repo
+permissions:
+  contents: write
+
+jobs:
+  run-and-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 簽出 repo
+        uses: actions/checkout@v4
+
+      - name: 設定 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 安裝相依套件
+        run: pip install -r requirements.txt
+
+      - name: 執行可轉債統計腳本
+        run: python scripts/fetch_cb_stats.py
+
+      - name: 提交更新的資料檔案
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add data/
+          git diff --staged --quiet && echo "沒有變動，略過提交" || \
+            git commit -m "自動更新可轉債統計資料 $(date -u +'%Y-%m-%d %H:%M UTC')"
+          git push
