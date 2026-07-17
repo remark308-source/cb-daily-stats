@@ -8,12 +8,19 @@ on:
     - cron: '0 12 * * 1-5'
   workflow_dispatch: {}  # 允許手動觸發，方便測試
 
-# 讓 Action 有權限把結果 commit 回 repo
+# 讓 Action 有權限把結果 commit 回 repo，以及部署到 GitHub Pages
 permissions:
   contents: write
+  pages: write
+  id-token: write
+
+# 避免同時有多個部署互相打架
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
 
 jobs:
-  run-and-commit:
+  fetch-and-commit:
     runs-on: ubuntu-latest
     steps:
       - name: 簽出 repo
@@ -38,3 +45,29 @@ jobs:
           git diff --staged --quiet && echo "沒有變動，略過提交" || \
             git commit -m "自動更新可轉債統計資料 $(date -u +'%Y-%m-%d %H:%M UTC')"
           git push
+
+  deploy-pages:
+    needs: fetch-and-commit
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      # 重新簽出：因為上一個 job 剛剛 push 了新的 commit，
+      # 這裡要拿到「含最新 data/history.csv」的最新版本
+      - name: 簽出最新的 repo 內容
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+
+      - name: 設定 GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: 打包要部署的網頁內容（index.html + data/）
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+
+      - name: 部署到 GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
