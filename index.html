@@ -104,11 +104,12 @@
   .chart-wrap{ position:relative; height:320px; }
 
   .dist-bars{ display:flex; flex-direction:column; gap:10px; margin-top:8px; }
-  .dist-row{ display:grid; grid-template-columns: 90px 1fr 50px; align-items:center; gap:12px; }
+  .dist-row{ display:grid; grid-template-columns: 90px 1fr 50px 60px; align-items:center; gap:12px; }
   .dist-label{ font-family:var(--mono); font-size:13px; color:var(--text-dim); }
   .dist-track{ background:var(--bg-panel-2); height:14px; position:relative; border-radius:2px; overflow:hidden; }
   .dist-fill{ background:var(--amber); height:100%; border-radius:2px; }
   .dist-count{ font-family:var(--mono); font-size:13px; text-align:right; }
+  .dist-pct{ font-family:var(--mono); font-size:12px; text-align:right; color:var(--text-dim); }
 
   footer{
     max-width:1080px; margin:0 auto; padding:20px 24px 60px;
@@ -335,15 +336,18 @@ function renderTrendChart(rows){
 
 function renderDistribution(d){
   const values = PRICE_BINS.map(b => Number(d["price_bin_" + b.key]) || 0);
+  const total = values.reduce((a, b) => a + b, 0) || 1; // 避免除以0
   const max = Math.max(...values, 1);
   const html = PRICE_BINS.map((b, i) => {
     const v = values[i];
-    const pct = (v / max * 100).toFixed(1);
+    const barPct = (v / max * 100).toFixed(1);
+    const sharePct = (v / total * 100).toFixed(1);
     return `
       <div class="dist-row">
         <div class="dist-label">${b.label}</div>
-        <div class="dist-track"><div class="dist-fill" style="width:${pct}%"></div></div>
+        <div class="dist-track"><div class="dist-fill" style="width:${barPct}%"></div></div>
         <div class="dist-count">${v}</div>
+        <div class="dist-pct">${sharePct}%</div>
       </div>`;
   }).join("");
   document.getElementById("distBars").innerHTML = html;
