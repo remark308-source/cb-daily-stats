@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 台股可轉債每日統計腳本
-
+資料來源: 統一證券 CBAS 資訊網 (https://cbas16889.pscnet.com.tw)
 
 流程：
 1. 呼叫 API 取得所有已發行 CB 的即時資料
