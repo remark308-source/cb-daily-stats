@@ -144,7 +144,7 @@
 </main>
 
 <footer>
-  每週六更新／ <a href="data/history.csv">歷史資料 CSV</a>
+  資料來源：統一證券 CBAS 資訊網（每週更新）／ <a href="data/history.csv">歷史資料 CSV</a>
 </footer>
 
 <script>
@@ -199,6 +199,7 @@ function render(rows){
   renderCards(latest);
   renderTrendChart(rows);
   renderDistribution(latest);
+  renderDistributionTrendChart(rows);
 }
 
 function renderTicker(d){
@@ -243,8 +244,13 @@ function renderCards(d){
     </section>
     <section class="panel">
       <h2>本期價格區間分布</h2>
-      <p class="desc">依 CB 收盤／委買價分組的標的數量</p>
+      <p class="desc">依 CB 收盤價分組的標的數量</p>
       <div class="dist-bars" id="distBars"></div>
+    </section>
+    <section class="panel">
+      <h2>價格區間分布趨勢</h2>
+      <p class="desc">各價格區間標的數量　隨時間變化（堆疊面積圖）</p>
+      <div class="chart-wrap"><canvas id="distTrendChart"></canvas></div>
     </section>
   `;
 }
@@ -341,6 +347,61 @@ function renderDistribution(d){
       </div>`;
   }).join("");
   document.getElementById("distBars").innerHTML = html;
+}
+
+// 依區間由低到高給一組漸層色（低價區間偏冷色，高價區間偏暖色）
+const BIN_COLORS = ["#4a7fb5", "#3fae76", "#8fae3f", "#f0a93b", "#e07b3f", "#d6644a"];
+
+function renderDistributionTrendChart(rows){
+  const labels = rows.map(r => r.date);
+  const ctx = document.getElementById("distTrendChart").getContext("2d");
+
+  const datasets = PRICE_BINS.map((b, i) => ({
+    label: b.label,
+    data: rows.map(r => Number(r["price_bin_" + b.key]) || 0),
+    borderColor: BIN_COLORS[i],
+    backgroundColor: BIN_COLORS[i] + "55", // 加上透明度做堆疊填色
+    fill: true,
+    stack: "bins",
+    tension: 0.25,
+    pointRadius: 0,
+    borderWidth: 1.5,
+  }));
+
+  new Chart(ctx, {
+    type: "line",
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: "index", intersect: false },
+      plugins: {
+        legend: {
+          labels: { color: "#8b93a1", font: { family: "IBM Plex Mono", size: 11 } }
+        },
+        tooltip: {
+          backgroundColor: "#1d2530",
+          borderColor: "#2a3341",
+          borderWidth: 1,
+          titleColor: "#e7e4d8",
+          bodyColor: "#e7e4d8",
+        }
+      },
+      scales: {
+        x: {
+          stacked: true,
+          ticks: { color: "#8b93a1", font: { family: "IBM Plex Mono", size: 10 }, maxTicksLimit: 10 },
+          grid: { color: "#1d2530" }
+        },
+        y: {
+          stacked: true,
+          beginAtZero: true,
+          ticks: { color: "#8b93a1", font: { family: "IBM Plex Mono", size: 10 } },
+          grid: { color: "#1d2530" }
+        }
+      }
+    }
+  });
 }
 
 loadData();
