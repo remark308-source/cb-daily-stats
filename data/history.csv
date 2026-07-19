@@ -1,2 +1,0 @@
-﻿date,total_count,avg_cb_price,pr75_price,pr90_price,avg_conversion_value,avg_premium_rate,count_conversion_value_ge_100,count_conversion_value_ge_120,count_premium_rate_gt_0,count_premium_rate_ge_50,count_premium_rate_ge_100,price_bin_<100,price_bin_100-105,price_bin_105-110,price_bin_110-120,price_bin_120-130,price_bin_>=130
-2026-07-17,376,134.64,133.0,202.0,106.81,39.3,128,92,357,106,31,75,85,28,46,38,104
