@@ -250,7 +250,7 @@ function renderCards(d){
     </section>
     <section class="panel">
       <h2>價格區間分布趨勢</h2>
-      <p class="desc">各價格區間標的數量　隨時間變化（堆疊面積圖）</p>
+      <p class="desc">各價格區間標的數量　隨時間變化</p>
       <div class="chart-wrap"><canvas id="distTrendChart"></canvas></div>
     </section>
   `;
@@ -364,12 +364,12 @@ function renderDistributionTrendChart(rows){
     label: b.label,
     data: rows.map(r => Number(r["price_bin_" + b.key]) || 0),
     borderColor: BIN_COLORS[i],
-    backgroundColor: BIN_COLORS[i] + "55", // 加上透明度做堆疊填色
-    fill: true,
-    stack: "bins",
+    backgroundColor: "transparent",
+    fill: false,
     tension: 0.25,
-    pointRadius: 0,
-    borderWidth: 1.5,
+    pointRadius: 2,
+    pointHoverRadius: 4,
+    borderWidth: 2,
   }));
 
   new Chart(ctx, {
@@ -393,12 +393,10 @@ function renderDistributionTrendChart(rows){
       },
       scales: {
         x: {
-          stacked: true,
           ticks: { color: "#8b93a1", font: { family: "IBM Plex Mono", size: 10 }, maxTicksLimit: 10 },
           grid: { color: "#1d2530" }
         },
         y: {
-          stacked: true,
           beginAtZero: true,
           ticks: { color: "#8b93a1", font: { family: "IBM Plex Mono", size: 10 } },
           grid: { color: "#1d2530" }
